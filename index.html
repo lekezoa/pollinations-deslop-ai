@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeSlop AI - Strip the LLM Voice & Humanize Your Prose</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #121824;
+      --border: #222d3d;
+      --primary: #10b981;
+      --accent: #3b82f6;
+      --slop-red: #ef4444;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+    header { padding: 1.25rem 2rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: rgba(9, 13, 22, 0.85); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 50; }
+    .brand { display: flex; align-items: center; gap: 0.75rem; font-weight: 700; font-size: 1.25rem; }
+    .badge-icon { background: linear-gradient(135deg, var(--primary), var(--accent)); padding: 0.4rem 0.6rem; border-radius: 8px; color: #fff; font-size: 0.9rem; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; width: 100%; flex: 1; }
+    .hero { text-align: center; margin-bottom: 2rem; }
+    .hero h1 { font-size: 2.25rem; font-weight: 800; margin-bottom: 0.5rem; background: linear-gradient(to right, #fff, var(--text-muted)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero p { color: var(--text-muted); font-size: 1.05rem; }
+
+    .byop-banner { display: flex; justify-content: space-between; align-items: center; background: rgba(16, 185, 129, 0.08); border: 1px dashed var(--primary); border-radius: 10px; padding: 0.75rem 1rem; margin-bottom: 1.5rem; font-size: 0.9rem; }
+    .byop-banner input { background: #0c121d; border: 1px solid var(--border); color: #fff; padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.85rem; width: 260px; }
+
+    .slop-meter-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 2rem; }
+    .score-circle { width: 90px; height: 90px; border-radius: 50%; border: 4px solid var(--slop-red); display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 800; }
+    .score-num { font-size: 1.75rem; line-height: 1; color: var(--slop-red); }
+    .score-lbl { font-size: 0.7rem; color: var(--text-muted); }
+    .meter-details { flex: 1; }
+    .meter-details h3 { font-size: 1.1rem; margin-bottom: 0.35rem; }
+    .meter-details p { color: var(--text-muted); font-size: 0.9rem; }
+
+    .panels-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    .panel { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; }
+    .panel-header { padding: 0.85rem 1.15rem; background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 0.95rem; }
+    textarea { width: 100%; height: 320px; background: transparent; border: none; padding: 1.15rem; color: #fff; font-size: 0.95rem; line-height: 1.6; resize: none; outline: none; }
+    .result-box { width: 100%; height: 320px; padding: 1.15rem; color: #cbd5e1; font-size: 0.95rem; line-height: 1.6; overflow-y: auto; white-space: pre-wrap; }
+    .panel-footer { padding: 0.75rem 1.15rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+
+    .action-row { display: flex; justify-content: center; gap: 1rem; margin: 1.5rem 0; }
+    button.btn-primary { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff; border: none; border-radius: 10px; padding: 0.85rem 2rem; font-weight: 600; font-size: 1rem; cursor: pointer; transition: opacity 0.2s; }
+    button.btn-primary:hover { opacity: 0.9; }
+
+    .highlight-slop { background: rgba(239, 68, 68, 0.25); color: #fca5a5; padding: 0.1rem 0.3rem; border-radius: 4px; font-weight: 600; border: 1px solid rgba(239, 68, 68, 0.4); }
+    footer { border-top: 1px solid var(--border); padding: 1.5rem; text-align: center; color: var(--text-muted); font-size: 0.9rem; margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span class="badge-icon">✍️</span>
+      <span>DeSlop AI</span>
+    </div>
+    <a href="https://pollinations.ai/?ref=badge" target="_blank">
+      <img src="https://raw.githubusercontent.com/pollinations/pollinations/main/packages/ui/src/brand/badge-made-with.svg" alt="Made with pollinations.ai" style="height: 32px;">
+    </a>
+  </header>
+
+  <div class="container">
+    <div class="hero">
+      <h1>Strip the "LLM Voice" from Your Text</h1>
+      <p>Inspired by Martin Fowler's <em>LLM Voice</em> — Detect artificial tells and rewrite into direct, authentic human voice via Pollinations AI.</p>
+    </div>
+
+    <div class="byop-banner">
+      <div>
+        <strong>🔑 Bring Your Own Pollen (BYOP):</strong> Enter your Pollinations API key to power de-slopping with your balance.
+      </div>
+      <input type="password" id="apiKeyInput" placeholder="Enter key (or leave empty for free tier)" onchange="saveKey(this.value)">
+    </div>
+
+    <div class="slop-meter-card">
+      <div class="score-circle" id="scoreCircle">
+        <span class="score-num" id="scoreValue">85%</span>
+        <span class="score-lbl">SLOP INDEX</span>
+      </div>
+      <div class="meter-details">
+        <h3 id="slopStatus">High AI Voice Detected</h3>
+        <p id="slopFound">Found classic machine-written markers: "delve into", "tapestry", "in summary", "pivotal role".</p>
+      </div>
+      <div>
+        <select id="voiceStyle" style="background:#0f1623; border:1px solid var(--border); color:#fff; padding:0.5rem; border-radius:8px;">
+          <option value="direct">Direct & Concise</option>
+          <option value="casual">Casual Human (Conversational)</option>
+          <option value="journalistic">Journalistic (Inverted Pyramid)</option>
+          <option value="academic">Rigorous Academic</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="panels-grid">
+      <div class="panel">
+        <div class="panel-header">
+          <span>Machine-Written Text (LLM Voice)</span>
+          <button style="background:transparent; border:none; color:var(--accent); cursor:pointer;" onclick="loadSample()">Load Sample</button>
+        </div>
+        <textarea id="inputText" oninput="analyzeSlop()">In today's fast-paced digital landscape, artificial intelligence plays a pivotal role in revolutionizing modern industries. Delving deeper into the rich tapestry of technological innovation, it serves as a testament to human ingenuity. In summary, it is crucial to embrace these groundbreaking methodologies as a beacon of progress.</textarea>
+        <div class="panel-footer">
+          <span id="charCount">0 characters</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <span>De-Slopped Human Prose</span>
+          <span style="font-size:0.8rem; color:var(--primary);">Pollinations Rewrite</span>
+        </div>
+        <div class="result-box" id="resultText">Click "De-Slop and Humanize" to strip artificial tells...</div>
+        <div class="panel-footer">
+          <span id="resStatus">Ready</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-row">
+      <button class="btn-primary" onclick="deslopText()">⚡ De-Slop and Humanize via Pollinations</button>
+    </div>
+  </div>
+
+  <footer>
+    <a href="https://pollinations.ai/?ref=badge" target="_blank">
+      <img src="https://raw.githubusercontent.com/pollinations/pollinations/main/packages/ui/src/brand/badge-made-with.svg" alt="Made with pollinations.ai" style="height: 32px;">
+    </a>
+    <p>Built with Pollinations.ai API for POLLEN-QUEST #19180 • The LLM Voice Humanizer</p>
+  </footer>
+
+  <script>
+    const SLOP_TRIGGERS = [
+      "delve", "delving", "tapestry", "rich tapestry", "pivotal role", "crucial",
+      "testament to", "beacon of hope", "in summary", "furthermore", "moreover",
+      "in today's digital landscape", "fast-paced world", "groundbreaking",
+      "transformative", "revolutionizing", "embark on a journey", "bustling",
+      "vital", "holistic", "seamlessly"
+    ];
+
+    function saveKey(val) {
+      if (val) localStorage.setItem('pollinations_key', val.trim());
+      else localStorage.removeItem('pollinations_key');
+    }
+
+    function loadSample() {
+      document.getElementById('inputText').value = `In today's fast-paced digital landscape, artificial intelligence plays a pivotal role in revolutionizing modern industries. Delving deeper into the rich tapestry of technological innovation, it serves as a testament to human ingenuity. In summary, it is crucial to embrace these groundbreaking methodologies as a beacon of progress.`;
+      analyzeSlop();
+    }
+
+    function analyzeSlop() {
+      const text = document.getElementById('inputText').value;
+      document.getElementById('charCount').textContent = `${text.length} characters`;
+      const lower = text.toLowerCase();
+      
+      const found = [];
+      SLOP_TRIGGERS.forEach(t => {
+        if (lower.includes(t)) found.push(t);
+      });
+
+      let score = Math.min(100, Math.round((found.length / 5) * 100));
+      if (text.length > 30 && found.length === 0) score = 15;
+      if (text.length === 0) score = 0;
+
+      const circle = document.getElementById('scoreCircle');
+      const val = document.getElementById('scoreValue');
+      const status = document.getElementById('slopStatus');
+      const desc = document.getElementById('slopFound');
+
+      val.textContent = `${score}%`;
+      if (score >= 60) {
+        circle.style.borderColor = "var(--slop-red)";
+        val.style.color = "var(--slop-red)";
+        status.textContent = "High AI Slop Detected";
+      } else if (score >= 30) {
+        circle.style.borderColor = "#f59e0b";
+        val.style.color = "#f59e0b";
+        status.textContent = "Moderate LLM Tells Present";
+      } else {
+        circle.style.borderColor = "var(--primary)";
+        val.style.color = "var(--primary)";
+        status.textContent = "Clean Human Tone";
+      }
+
+      if (found.length > 0) {
+        desc.innerHTML = `Found telltale triggers: ` + found.slice(0, 5).map(f => `<span class="highlight-slop">${f}</span>`).join(" ");
+      } else {
+        desc.textContent = "No prominent automated buzzwords detected.";
+      }
+    }
+
+    async function deslopText() {
+      const text = document.getElementById('inputText').value.trim();
+      if (!text) return;
+
+      const resBox = document.getElementById('resultText');
+      const resStatus = document.getElementById('resStatus');
+      const style = document.getElementById('voiceStyle').value;
+      const apiKey = localStorage.getItem('pollinations_key') || "";
+
+      resStatus.textContent = "Rewriting via Pollinations LLM...";
+      resBox.textContent = "Stripping buzzwords, throat-clearing, and artificial cadence...";
+
+      const systemPrompt = `You are a prose editor specializing in eliminating the recognisable "LLM voice" (sterile cheerfulness, excessive hedging, pompous metaphors like 'rich tapestry', 'delve', 'testament to'). Rewrite the user text in a direct, natural human voice (${style} style). Keep the factual meaning identical, but make it sound like a skilled human writer speaking directly. Output ONLY the rewritten prose.`;
+
+      try {
+        const headers = { "Content-Type": "application/json" };
+        if (apiKey) headers["Authorization"] = `Bearer ${apiKey}`;
+
+        const res = await fetch("https://gen.pollinations.ai/v1/chat/completions", {
+          method: "POST",
+          headers: headers,
+          body: JSON.stringify({
+            model: "openai-large",
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: text }
+            ],
+            temperature: 0.6
+          })
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const cleaned = data.choices?.[0]?.message?.content || "No output produced.";
+        resBox.textContent = cleaned;
+        resStatus.textContent = "De-slopped successfully";
+      } catch (err) {
+        resBox.innerHTML = `<span style="color:#ef4444;">Error: ${err.message}. Try adding a BYOP key if rate-limited.</span>`;
+        resStatus.textContent = "Failed";
+      }
+    }
+
+    window.onload = () => {
+      const saved = localStorage.getItem('pollinations_key') || "";
+      if (saved) document.getElementById('apiKeyInput').value = saved;
+      analyzeSlop();
+    };
+  </script>
+</body>
+</html>
